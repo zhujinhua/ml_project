@@ -1,34 +1,65 @@
-import numpy as np
-import jieba
 import json
 import os
-import sys
-import time
+
+import jieba
+import numpy as np
+
 
 # 根据某列所有字符串列表，产生分词编码表
-def generate_encode_dictionary(sentents):
+def generate_encode_dictionary_v1(sentents):
     all_words = set()
     for s in sentents:
         all_words.update(jieba.lcut(s))
     return sorted(all_words)
 
+
+# 根据某列所有字符串列表词频top N，产生分词编码表
+def generate_encode_dictionary_v2(sentents, use_jieba=False):
+    stat_words = {}
+    if use_jieba:
+        for s in sentents:
+            for j in jieba.lcut(s):
+                stat_words[j] = stat_words[j] + 1 if j in stat_words else 0
+    else:
+        for s in sentents:
+            stat_words[s] = stat_words[s] + 1 if s in stat_words else 0
+    # 取频率最高的前50个词作为编码字典
+    sorted_words = sorted(stat_words.items(), key=lambda x: x[1], reverse=True)[:50]
+    print(sorted_words)
+    return [w[0] for w in sorted_words]
+
+
 # 根据分词编码表对某个字符串编码
-def gen_encode(all_words, str):
+def gen_encode_1(all_words, str):
     return [jieba.lcut(str).count(w) for w in all_words]
+
+
+# 根据分词编码表对某个字符串编码, 每100个合计计数一次
+def gen_encode_v2(all_words, str):
+    return [sum([w.count(s) for s in jieba.lcut(str)]) for w in all_words[::100]]
+
 
 # 按照encode_column_map中的列产生分词编码字典总表，并保存到文件中
 def gen_all_encode_dictionary(path, encode_column_map, data):
     all_words_dict = {}
     for column, name in encode_column_map.items():
-        all_words_dict[name] = generate_encode_dictionary(data[:, column])
+        '''
+        if name in ["详细地址"]:
+            all_words_dict[name] = generate_encode_dictionary_v2(data[:, column], True)
+        else:
+            all_words_dict[name] = generate_encode_dictionary_v2(data[:, column])
+        '''
+        all_words_dict[name] = generate_encode_dictionary_v1(data[:, column])
     with open(path, mode='w', encoding='utf8') as f:
         json.dump(all_words_dict, f)
     return all_words_dict
+
 
 # 从文件加载分词编码字典总表，返回字典
 def load_all_encode_dictionary(path):
     with open(path, mode='r', encoding='utf8') as f:
         return json.load(f)
+
 
 # 加载最原始的数据，并按照逗号分隔，确保列对齐，返回的时间都是原始字符串，不能用于模型处理
 def load_raw_data(path):
@@ -102,7 +133,7 @@ def load_horse_rental_data():
 
             # 需要编码的字符串列开始通过分词编码，不需要编码的列转换字符串为数字
             if j in encode_column_map.keys():
-                record += gen_encode(encode_dict[encode_column_map[j]], d[j])
+                record += gen_encode_v2(encode_dict[encode_column_map[j]], d[j])
             else:
                 # 字符串串中含有.的转换为浮点点数，其他的转换为整数
                 if '.' in d[j]:
@@ -113,7 +144,3 @@ def load_horse_rental_data():
         new_X.append(record)
 
     return new_X, new_y
-
-
-
-
