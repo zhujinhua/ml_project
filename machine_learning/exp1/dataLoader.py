@@ -111,7 +111,7 @@ def load_horse_rental_data():
     # 不做处理可以忽略的列,添加到这个列表中
     ignore_column = [0, 3]
 
-    raw_X, raw_y = load_raw_data("./dataset/中国租房信息数据集.csv")
+    raw_X, raw_y = load_raw_data("../dataset/中国租房信息数据集.csv")
     records = np.array(raw_X)
 
     # 获取编码字典
