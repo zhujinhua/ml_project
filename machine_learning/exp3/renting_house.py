@@ -3,11 +3,6 @@ Author: jhzhu
 Date: 2024/6/20
 Description: 
 """
-"""
-Author: jhzhu
-Date: 2024/6/16
-Description: 
-"""
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, VotingRegressor
@@ -28,10 +23,34 @@ ENCODER_COLUMNS = ['租房网站名称', '小区', '城市', '区', '朝向']
 numeric_features = ['面积', 'lng', 'lat', '所属楼层', '总楼层', '最近学校距离', '周边学校个数', '最近医院距离',
                     '周边医院个数']
 
-categorical_features = ['租房网站名称', '小区', '城市', '区', '室', '卫', '厅', '朝向']
+categorical_features = ['租房网站名称', '小区', '城市', '区', '室', '卫', '厅', '朝向',
+                        '是否有阳台', '信息发布人类型', '是否有床', '是否有衣柜', '是否有沙发',
+                        '是否有电视', '是否有冰箱', '是否有洗衣机', '是否有空调', '是否有热水器',
+                        '是否有宽带', '是否有燃气', '是否有暖气']
 
 
 # FILL_VALUE = ['南','东西','西南','东','西','东北','西北','北']
+
+
+def plot_correlation_matrix(df, feature_importances, top_n=10):
+    feature_importances = pd.DataFrame({
+        'Feature': X_train.columns,
+        'Importance': feature_importances
+    })
+    # Sort the features by importance
+    feature_importances = feature_importances.sort_values(by='Importance', ascending=False)
+    top_features = feature_importances.head(top_n)['Feature'].values
+    correlation_matrix = df[top_features].corr()
+    sns.set(style='white')
+    plt.rcParams['font.sans-serif'] = ['Yuanti SC']
+    plt.figure(figsize=(14, 12))
+    heatmap = sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5,
+                          annot_kws={"size": 12})
+    plt.title('Top 10 Feature Correlation Heatmap', fontsize=16, fontweight='bold')
+    plt.xticks(rotation=45, ha='right', fontsize=12)
+    plt.yticks(rotation=0, fontsize=12)
+    plt.show()
+
 
 def custom_adjusted_r2(y_true, y_pred, **kwargs):
     if 'x_column' not in kwargs['kwargs']:
@@ -65,8 +84,7 @@ def evaluate_predict_result(x, y_true, y_pred):
     return result_dict
 
 
-def plot_feature_importance(model, X):
-    importances = model.feature_importances_
+def plot_feature_importance(importances, X):
     features = X.columns
 
     indices = np.argsort(importances)[::-1]
@@ -104,11 +122,6 @@ def zero_index_features(df, columns_to_reindex):
 
 def get_column_transformer(encoded_columns_name):
     return ColumnTransformer([('encoder', OneHotEncoder(drop='first'), encoded_columns_name)], remainder='passthrough')
-
-
-def adjusted_pred(y_pred, X_test):
-    y_pred = pd.Series(y_pred)
-    return y_pred * X_test['面积'].reset_index(drop=True)
 
 
 def plot_models_predict_result(x_labels, y_values):
@@ -194,8 +207,7 @@ for key, estimator in estimator_dict.items():
     ])
     pipeline.fit(X_train, y_train)
     y_pred = pipeline.predict(X_test)
-    y_pred = adjusted_pred(y_pred, X_test)
-    result = evaluate_predict_result(X_test, y_test_adjusted, y_pred)
+    result = evaluate_predict_result(X_test, y_test, y_pred)
     result_dict[key] = result['mean_absolute_error']
     print('%s: %s' % (key, result))
 plot_models_predict_result(list(result_dict.keys()), list(result_dict.values()))
@@ -204,16 +216,13 @@ plot_models_predict_result(list(result_dict.keys()), list(result_dict.values()))
 '''
 rf = RandomForestRegressor(n_estimators=200, random_state=42, max_depth=100)
 rf.fit(X_train, y_train)
-plot_feature_importance(rf, X_train)
+importance = rf.feature_importances_
+plot_feature_importance(importance, X_train)
+plot_correlation_matrix(X_train, feature_importances=importance)
 # visualize_shap_values(rf, X_test, X)
 rf_pred = rf.predict(X_test)
-# update predict value
-y_test = y_test.reset_index(drop=True)
-rf_pred = pd.Series(rf_pred)
-
-rf_pred_adjusted = rf_pred * X_test['面积'].reset_index(drop=True)
-
-result = evaluate_predict_result(X_test, y_test_adjusted, rf_pred_adjusted)
+result = evaluate_predict_result(X_test, y_test, rf_pred)
 print(result)
 '''
+
 
