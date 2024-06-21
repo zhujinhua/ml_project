@@ -3,9 +3,14 @@ Author: jhzhu
 Date: 2024/6/20
 Description: 
 """
+import time
+
+import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, VotingRegressor
+from sklearn.decomposition import PCA
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, VotingRegressor, \
+    BaggingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error, median_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -124,10 +129,10 @@ def get_column_transformer(encoded_columns_name):
     return ColumnTransformer([('encoder', OneHotEncoder(drop='first'), encoded_columns_name)], remainder='passthrough')
 
 
-def plot_models_predict_result(x_labels, y_values):
+def plot_models_predict_result(x_labels, y_values, y_label):
     plt.figure(figsize=(10, 6))
     sns.set(style="whitegrid")
-    bars = plt.bar(x_labels, y_values, color=sns.color_palette("viridis", len(x_labels)))
+    bars = plt.bar(x_labels, y_values, color=sns.color_palette("coolwarm", len(x_labels)))
     for bar in bars:
         height = bar.get_height()
         plt.text(bar.get_x() + bar.get_width() / 2.0, height, f'{height:.2f}', ha='center', va='bottom', fontsize=12,
@@ -135,7 +140,7 @@ def plot_models_predict_result(x_labels, y_values):
 
     plt.title('Model Training Performance Comparison', fontsize=20, fontweight='bold')
     plt.xlabel('Models', fontsize=14, fontweight='bold')
-    plt.ylabel('Mean Absolute Error(MAE)', fontsize=14, fontweight='bold')
+    plt.ylabel(y_label, fontsize=14, fontweight='bold')
     plt.xticks(rotation=45, fontsize=12)
     plt.yticks(fontsize=12)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
@@ -194,23 +199,40 @@ print("Best Score:", np.sqrt(-grid_search.best_score_))
 estimator_dict = {
     'Linear Regression': LinearRegression(),
     'SVM': SVR(kernel='linear', C=10, epsilon=0.2),
-    'Random Forest': RandomForestRegressor(n_estimators=200, random_state=42, max_depth=100),
+    'Decision Tree': DecisionTreeRegressor(max_depth=35, random_state=42),
+    'Random Forest': RandomForestRegressor(n_estimators=200, random_state=42, max_depth=35),
     'Gradient Boosting': GradientBoostingRegressor(n_estimators=500, max_depth=10, learning_rate=0.2),
+    'Bagging': BaggingRegressor(n_estimators=200, random_state=42),
     'AdaBoost': AdaBoostRegressor(estimator=DecisionTreeRegressor(), n_estimators=500, learning_rate=0.05,
                                   random_state=42)
 }
-result_dict = {}
+mae_dict = {}
+accuracy_dict = {}
+training_time = {}
 for key, estimator in estimator_dict.items():
+    start = time.localtime()
     pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('regressor', estimator)
     ])
     pipeline.fit(X_train, y_train)
+    # joblib.dump(pipeline, filename='../output/adaboost.joblib', compress=6)
+    train_end = time.localtime()
     y_pred = pipeline.predict(X_test)
+    pred_end = time.localtime()
+    train_time = (time.mktime(train_end) - time.mktime(start))
+    print('%s training cost %ss, predict cost %ss' % (key, train_time,
+                                                      (time.mktime(pred_end) - time.mktime(train_end))))
     result = evaluate_predict_result(X_test, y_test, y_pred)
-    result_dict[key] = result['mean_absolute_error']
+    mae_dict[key] = result['mean_absolute_error']
+    accuracy_dict[key] = result['avg accuracy']
+    training_time[key] = train_time
     print('%s: %s' % (key, result))
-plot_models_predict_result(list(result_dict.keys()), list(result_dict.values()))
+plot_models_predict_result(list(mae_dict.keys()), list(mae_dict.values()), 'Mean Absolute Error(MAE)')
+# time.sleep(30)
+plot_models_predict_result(list(accuracy_dict.keys()), list(accuracy_dict.values()), 'Average Accuracy')
+# time.sleep(30)
+plot_models_predict_result(list(training_time.keys()), list(training_time.values()), 'Training Time')
 
 
 '''
@@ -221,8 +243,8 @@ plot_feature_importance(importance, X_train)
 plot_correlation_matrix(X_train, feature_importances=importance)
 # visualize_shap_values(rf, X_test, X)
 rf_pred = rf.predict(X_test)
-result = evaluate_predict_result(X_test, y_test, rf_pred)
-print(result)
+output = evaluate_predict_result(X_test, y_test, rf_pred)
+print(output)
 '''
 
 
