@@ -229,10 +229,8 @@ for key, estimator in estimator_dict.items():
     training_time[key] = train_time
     print('%s: %s' % (key, result))
 plot_models_predict_result(list(mae_dict.keys()), list(mae_dict.values()), 'Mean Absolute Error(MAE)')
-# time.sleep(30)
 plot_models_predict_result(list(accuracy_dict.keys()), list(accuracy_dict.values()), 'Average Accuracy')
-# time.sleep(30)
-plot_models_predict_result(list(training_time.keys()), list(training_time.values()), 'Training Time')
+plot_models_predict_result(list(training_time.keys()), list(training_time.values()), 'Training Time(s)')
 
 
 '''
