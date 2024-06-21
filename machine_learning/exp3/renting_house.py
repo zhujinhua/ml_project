@@ -156,7 +156,7 @@ filtered_df = rent_house_df.drop(columns=['link', '详细地址']).dropna()
 # filtered_df.loc[(filtered_df['最近医院距离'] == -1), '最近医院距离'] = 5000
 # filter data 面积 <5, 面积/室 < 3
 filtered_df = filtered_df[(filtered_df['面积'] >= 5) & (filtered_df['面积'] / filtered_df['室'] >= 3)]
-# filtered_df = filtered_df[filtered_df['所属楼层'] <= filtered_df['总楼层']]
+filtered_df.loc[(filtered_df['所属楼层'] > filtered_df['总楼层']), '总楼层'] = filtered_df['所属楼层']
 filtered_df['价格'] = filtered_df['价格'] / filtered_df['面积']
 zero_index_features(filtered_df, ENCODER_COLUMNS)
 X = filtered_df.loc[:, filtered_df.columns != '价格']
