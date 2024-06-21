@@ -5,6 +5,7 @@
     - models_mae.jpg 模型训练平均绝对误差对比图
     - training_time_cost.jpg 模型训练时间对比图
     - feature_importance.jpg 特征重要性分析图
+    - raw_feature_importance.jpg 第一版特征重要性分析图，可以看到价格与面积高度相关(多重共线性)，多重共线性会影响模型的稳定性和解释性。通过将价格转换为单价，减少了特征之间的相关性，使模型能够更好地捕捉特征之间的关系。
     - feature_corre.jpg Top 10 重要特征相关性分析
     - 特征列表.xlsx 特征取值范围说明表
     - preprocess_flow.txt 数据预处理流程
