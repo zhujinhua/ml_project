@@ -8,7 +8,6 @@ import time
 import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor, VotingRegressor, \
     BaggingRegressor
 from sklearn.linear_model import LinearRegression
@@ -172,7 +171,7 @@ preprocessor = ColumnTransformer(
         ('category', OneHotEncoder(handle_unknown='ignore', drop='first'), categorical_features)
     ]
 )
-
+# grid search to train the hyper parameters
 '''
 estimator = LinearRegression()
 estimator = SVR()
@@ -232,13 +231,12 @@ plot_models_predict_result(list(mae_dict.keys()), list(mae_dict.values()), 'Mean
 plot_models_predict_result(list(accuracy_dict.keys()), list(accuracy_dict.values()), 'Average Accuracy')
 plot_models_predict_result(list(training_time.keys()), list(training_time.values()), 'Training Time(s)')
 
-
+# plot the feature importance based on random forest
 '''
 rf = RandomForestRegressor(n_estimators=200, random_state=42, max_depth=100)
 rf.fit(X_train, y_train)
 importance = rf.feature_importances_
 plot_feature_importance(importance, X_train)
-plot_correlation_matrix(X_train, feature_importances=importance)
 # visualize_shap_values(rf, X_test, X)
 rf_pred = rf.predict(X_test)
 output = evaluate_predict_result(X_test, y_test, rf_pred)
