@@ -162,7 +162,8 @@ X = filtered_df.loc[:, filtered_df.columns != '价格']
 y = filtered_df.loc[:, '价格']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, shuffle=True)
-#
+
+# applies transformers to columns: discrete feature: one-hot encode, continuous feature: standardization
 preprocessor = ColumnTransformer(
     transformers=[
         ('numeric', StandardScaler(), numeric_features),
@@ -192,7 +193,7 @@ grid_search.fit(X_train, y_train)
 print("Best Parameters:", grid_search.best_params_)
 print("Best Score:", np.sqrt(-grid_search.best_score_))
 '''
-
+# estimator list to try different models
 estimator_dict = {
     'Linear Regression': LinearRegression(),
     'SVM': SVR(kernel='linear', C=10, epsilon=0.2),
@@ -208,6 +209,7 @@ accuracy_dict = {}
 training_time = {}
 for key, estimator in estimator_dict.items():
     start = time.localtime()
+    # define the training pipeline: preprocess, estimate model
     pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('regressor', estimator)
@@ -240,5 +242,3 @@ rf_pred = rf.predict(X_test)
 output = evaluate_predict_result(X_test, y_test, rf_pred)
 print(output)
 '''
-
-
