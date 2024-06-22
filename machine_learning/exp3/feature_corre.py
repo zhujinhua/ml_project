@@ -17,6 +17,7 @@ def zero_index_features(df, columns_to_reindex):
 
 
 def plot_correlation_matrix(df):
+    # get the dataframe corr matrix
     correlation_matrix = df.corr()
     sns.set(style='white')
     plt.rcParams['font.sans-serif'] = ['Yuanti SC']

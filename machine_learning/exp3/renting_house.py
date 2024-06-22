@@ -162,8 +162,6 @@ X = filtered_df.loc[:, filtered_df.columns != '价格']
 y = filtered_df.loc[:, '价格']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, shuffle=True)
-y_test = y_test.reset_index(drop=True)
-y_test_adjusted = y_test * X_test['面积'].reset_index(drop=True)
 #
 preprocessor = ColumnTransformer(
     transformers=[
