@@ -1,5 +1,5 @@
 ### 输出文件描述
-    - adaboost.joblib  模型存储文件
+    - adaboost.joblib  模型存储文件，训练最佳，用于上线模型训练
     - average_accuracy_formula.jpg 平均准确率公式
     - average_accuracy.jpg 模型训练平均准确率对比图
     - models_mae.jpg 模型训练平均绝对误差对比图

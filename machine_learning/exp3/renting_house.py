@@ -179,20 +179,22 @@ estimator = GradientBoostingRegressor(n_estimators=500, max_depth=10, learning_r
 estimator = AdaBoostRegressor(estimator=DecisionTreeRegressor(), n_estimators=500, learning_rate=0.05, random_state=42)
 
 
-Define the parameter grid for GridSearchCV
+# Define the parameter grid for GridSearchCV
+estimator = SVR()
 param_grid = {
     'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
     'C': [0.1, 1, 10, 100],
     'epsilon': [0.01, 0.1, 0.2, 0.5],
     'gamma': ['scale', 'auto']
 }
-
 grid_search = GridSearchCV(estimator=estimator, param_grid=param_grid,
                            scoring='neg_mean_squared_error', cv=5, verbose=3)
 grid_search.fit(X_train, y_train)
 print("Best Parameters:", grid_search.best_params_)
 print("Best Score:", np.sqrt(-grid_search.best_score_))
+
 '''
+
 # estimator list to try different models
 estimator_dict = {
     'Linear Regression': LinearRegression(),
@@ -207,6 +209,7 @@ estimator_dict = {
 mae_dict = {}
 accuracy_dict = {}
 training_time = {}
+r2_dict = {}
 for key, estimator in estimator_dict.items():
     start = time.localtime()
     # define the training pipeline: preprocess, estimate model
@@ -225,20 +228,12 @@ for key, estimator in estimator_dict.items():
     result = evaluate_predict_result(X_test, y_test, y_pred)
     mae_dict[key] = result['mean_absolute_error']
     accuracy_dict[key] = result['avg accuracy']
+    r2_dict[key] = result['r2']
     training_time[key] = train_time
     print('%s: %s' % (key, result))
-plot_models_predict_result(list(mae_dict.keys()), list(mae_dict.values()), 'Mean Absolute Error(MAE)')
-plot_models_predict_result(list(accuracy_dict.keys()), list(accuracy_dict.values()), 'Average Accuracy')
-plot_models_predict_result(list(training_time.keys()), list(training_time.values()), 'Training Time(s)')
+# plot_models_predict_result(list(mae_dict.keys()), list(mae_dict.values()), 'Mean Absolute Error(MAE)')
+# plot_models_predict_result(list(accuracy_dict.keys()), list(accuracy_dict.values()), 'Average Accuracy')
+plot_models_predict_result(list(r2_dict.keys()), list(r2_dict.values()), 'R²')
+# plot_models_predict_result(list(training_time.keys()), list(training_time.values()), 'Training Time(s)')
 
-# plot the feature importance based on random forest
-'''
-rf = RandomForestRegressor(n_estimators=200, random_state=42, max_depth=100)
-rf.fit(X_train, y_train)
-importance = rf.feature_importances_
-plot_feature_importance(importance, X_train)
-# visualize_shap_values(rf, X_test, X)
-rf_pred = rf.predict(X_test)
-output = evaluate_predict_result(X_test, y_test, rf_pred)
-print(output)
-'''
+

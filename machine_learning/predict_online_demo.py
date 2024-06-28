@@ -9,7 +9,7 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*unknown categories.*during transform.*")
 
-model = joblib.load('./output/adaboost.joblib')
+model = joblib.load('./page_code/model/adaboost.joblib')
 
 input_data = {
     '租房网站名称': '房天下',  # ['房天下', '58同城', '赶集网']
